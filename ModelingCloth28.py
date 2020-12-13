@@ -1014,6 +1014,7 @@ def run_handler(cloth):
     # can run the simulation constantly or with frame changes during blender animation:
     #if cloth.ob.modeling_cloth_handler_frame | bpy.app.timers.is_registered():
     if True:
+    #if bpy.context.object.modifiers["Cloth"].collision_settings.use_self_collision:
         # pause the cloth engine if the current cloth object is in edit mode
         if cloth.ob.mode == 'EDIT':
             cloth.waiting = True
@@ -2967,6 +2968,118 @@ def remove_properties():
     del(bpy.types.Scene.modeling_cloth_data_set)
     del(bpy.types.Scene.modeling_cloth_data_set_extra)
 
+class ClothMaterials(bpy.types.PropertyGroup):
+    cloth_materials = [
+        ("material_custom", "Custom", '', 'MATERIAL_CUSTOM', 0),
+        ("material_cotton", "Cotton", '', 'MATERIAL_COTTON', 1), #棉
+        ("material_denim", "Denim", '', 'MATERIAL_DENIM', 2), #牛仔布
+        ("material_leather", "Leather", '', 'MATERIAL_LEATHER', 3), #皮革
+        ("material_rubber", "Rubber", '', 'MATERIAL_RUBBER', 4), #橡膠
+        ("material_silk", "Silk", '', 'MATERIAL_SILK', 5), #絲
+        ("material_foam", "Foam", '', 'MATERIAL_FOAM', 6) #泡棉
+    ]
+    # material related
+    def execute_operator(self, context):
+        if(self.material == "material_cotton"):
+            print("cotton")
+            ob = bpy.context.active_object
+            ob.modeling_cloth_iterations = 25
+            ob.modeling_cloth_noise = 0.001
+            ob.modeling_cloth_noise_decay = 0.75
+            ob.modeling_cloth_spring_force = 0.4
+            ob.modeling_cloth_gravity = -0.001
+            ob.modeling_cloth_velocity = 0.25
+            ob.modeling_cloth_sew = 1
+            ob.modeling_cloth_push_springs = 0.1
+            ob.modeling_cloth_bend_stiff = 0
+            if ob.modeling_cloth_object_collision:    
+                ob.modeling_cloth_outer_margin = 0.005
+                ob.modeling_cloth_inner_margin = 0.01
+        if(self.material == "material_denim"):
+            print("denim")
+            ob = bpy.context.active_object
+            ob.modeling_cloth_iterations = 25
+            ob.modeling_cloth_noise = 0.2
+            ob.modeling_cloth_noise_decay = 0.75
+            ob.modeling_cloth_spring_force = 0.8
+            ob.modeling_cloth_gravity = -0.25
+            ob.modeling_cloth_velocity = 0.5
+            ob.modeling_cloth_sew = 1
+            ob.modeling_cloth_push_springs = 0.3
+            ob.modeling_cloth_bend_stiff = 0
+            if ob.modeling_cloth_object_collision:    
+                ob.modeling_cloth_outer_margin = 0.01
+                ob.modeling_cloth_inner_margin = 0.02
+        if(self.material == "material_leather"):
+            print("leather")
+            ob = bpy.context.active_object
+            ob.modeling_cloth_iterations = 25
+            ob.modeling_cloth_noise = 0.1
+            ob.modeling_cloth_noise_decay = 0.75
+            ob.modeling_cloth_spring_force = 1.6
+            ob.modeling_cloth_gravity = -0.5
+            ob.modeling_cloth_velocity = 0.5
+            ob.modeling_cloth_sew = 1
+            ob.modeling_cloth_push_springs = 0.3
+            ob.modeling_cloth_bend_stiff = 0
+            if ob.modeling_cloth_object_collision:    
+                ob.modeling_cloth_outer_margin = 0.01
+                ob.modeling_cloth_inner_margin = 0.02
+
+        if(self.material == "material_rubber"):
+            print("rubber")
+            ob = bpy.context.active_object
+            ob.modeling_cloth_iterations = 40
+            ob.modeling_cloth_noise = 0.1
+            ob.modeling_cloth_noise_decay = 0.75
+            ob.modeling_cloth_spring_force = 0.5
+            ob.modeling_cloth_gravity = -0.01
+            ob.modeling_cloth_velocity = 0.15
+            ob.modeling_cloth_sew = 1
+            ob.modeling_cloth_inflate = 0.0001
+            ob.modeling_cloth_push_springs = 0.3
+            ob.modeling_cloth_bend_stiff = 0
+            if ob.modeling_cloth_object_collision:    
+                ob.modeling_cloth_outer_margin = 0.02
+                ob.modeling_cloth_inner_margin = 0.04
+        if(self.material == "material_silk"):
+            print("silk")
+            ob = bpy.context.active_object
+            ob.modeling_cloth_iterations = 40
+            ob.modeling_cloth_noise = 0.0001
+            ob.modeling_cloth_noise_decay = 0.15
+            ob.modeling_cloth_spring_force = 0.15
+            ob.modeling_cloth_gravity = -0.001
+            ob.modeling_cloth_velocity = 0.15
+            ob.modeling_cloth_sew = 1
+            ob.modeling_cloth_push_springs = 0.3
+            ob.modeling_cloth_bend_stiff = 0
+            ob.modeling_cloth_inflate = 0.0001
+            if ob.modeling_cloth_object_collision:    
+                ob.modeling_cloth_outer_margin = 0.015
+                ob.modeling_cloth_inner_margin = 0.03
+        if(self.material == "material_foam"):
+            print("foam")
+            ob = bpy.context.active_object
+            ob.modeling_cloth_iterations = 25
+            ob.modeling_cloth_noise = 0.2
+            ob.modeling_cloth_noise_decay = 0.75
+            ob.modeling_cloth_spring_force = 0.8
+            ob.modeling_cloth_gravity = -0.25
+            ob.modeling_cloth_velocity = 0.5
+            ob.modeling_cloth_sew = 1
+            ob.modeling_cloth_push_springs = 0.3
+            ob.modeling_cloth_bend_stiff = 0.4
+            if ob.modeling_cloth_object_collision:    
+                ob.modeling_cloth_outer_margin = 0.01
+                ob.modeling_cloth_inner_margin = 0.02
+    material = bpy.props.EnumProperty(
+        items=cloth_materials,
+        description="choose cloth default material",
+        default="material_custom",
+        update=execute_operator
+    )
+
 
 class PANEL_PT_modelingCloth(bpy.types.Panel):
     """Modeling Cloth Panel"""
@@ -2976,7 +3089,7 @@ class PANEL_PT_modelingCloth(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_category = "Extended Tools"
     #gt_show = True
-    
+        
     def draw(self, context):
         status = False
         layout = self.layout
@@ -3044,7 +3157,6 @@ class PANEL_PT_modelingCloth(bpy.types.Panel):
                     col.label(text=i)
 
                 if ob.modeling_cloth:
-
                     # object collisions
                     col = layout.column(align=True)
                     col.label(text="Collisions")
@@ -3066,6 +3178,13 @@ class PANEL_PT_modelingCloth(bpy.types.Panel):
                     col.operator("object.modeling_cloth_reset", text="Reset")
                     col.alert = extra_data['drag_alert']
                     col.operator("view3d.modeling_cloth_drag", text="Grab")
+
+                    # default materials
+                    row = layout.row(align = True)
+                    box = row.box()
+                    box.prop(context.scene.clothMaterials, "material")
+                    # end default materials
+
                     col = layout.column(align=True)
                         
                     col.prop(ob ,"modeling_cloth_iterations", text="Iterations")#, icon='OUTLINER_OB_LATTICE')               
@@ -3164,6 +3283,10 @@ def collision_series(paperback=True, kindle=True):
 
 def register():
     create_properties()
+    # bpy.types.Scene.cloth_materials = bpy.props.EnumProperty(items=cloth_materials)
+    bpy.utils.register_class(ClothMaterials)
+    bpy.types.Scene.clothMaterials = bpy.props.PointerProperty(type=ClothMaterials)
+
     bpy.utils.register_class(PANEL_PT_modelingCloth)
     bpy.utils.register_class(ModelingClothPin)
     bpy.utils.register_class(ModelingClothDrag)
@@ -3183,10 +3306,10 @@ def register():
     bpy.utils.register_class(CollisionSeries)
     bpy.utils.register_class(CollisionSeriesKindle)
     bpy.utils.register_class(Donate)
-
-
 def unregister():
     remove_properties()
+    del bpy.types.Scene.clothMaterials
+    bpy.utils.unregister_class(ClothMaterials)
     bpy.utils.unregister_class(PANEL_PT_modelingCloth)
     bpy.utils.unregister_class(ModelingClothPin)
     bpy.utils.unregister_class(ModelingClothDrag)
@@ -3207,6 +3330,7 @@ def unregister():
     bpy.utils.unregister_class(CollisionSeriesKindle)
     bpy.utils.unregister_class(Donate)
     
+
     
 if __name__ == "__main__":
     register()
